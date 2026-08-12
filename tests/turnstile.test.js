@@ -7,11 +7,15 @@ test('Turnstile sends the secret and validates action and hostname', async () =>
   let request;
   const fetchImpl = async (url, options) => {
     request = { options, url };
-    return Response.json({ action: 'invite', hostname: 'slack.wodby.com', success: true });
+    return Response.json({
+      action: 'invite',
+      hostname: 'community.example.com',
+      success: true,
+    });
   };
 
   const result = await verifyTurnstile({
-    expectedHostname: 'slack.wodby.com',
+    expectedHostname: 'community.example.com',
     fetchImpl,
     remoteIp: '203.0.113.2',
     secretKey: 'turnstile-secret',

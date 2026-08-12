@@ -4,31 +4,29 @@
     <meta charset="utf-8">
     <meta name="viewport" content="width=device-width, initial-scale=1">
     <meta name="theme-color" content="#0540f2">
-    <meta name="description" content="Join the Wodby community on Slack to talk Kubernetes, hosting, application stacks, and everything you are building.">
+    <meta name="description" content="{{COMMUNITY_DESCRIPTION}}">
     <meta property="og:type" content="website">
-    <meta property="og:site_name" content="Wodby">
-    <meta property="og:title" content="Join the Wodby community on Slack">
-    <meta property="og:description" content="Talk Kubernetes, hosting, application stacks, and everything you are building with the Wodby community.">
-    <meta property="og:url" content="https://slack.wodby.com/">
-    <meta property="og:image" content="https://slack.wodby.com/og.png">
-    <meta property="og:image:alt" content="Build, deploy, and solve it together — Wodby on Slack">
+    <meta property="og:site_name" content="{{COMMUNITY_NAME}}">
+    <meta property="og:title" content="{{PAGE_TITLE}}">
+    <meta property="og:description" content="{{COMMUNITY_DESCRIPTION}}">
+    <meta property="og:url" content="{{PUBLIC_URL}}">
+    <meta property="og:image" content="{{SOCIAL_IMAGE_URL}}">
+    <meta property="og:image:alt" content="{{SOCIAL_IMAGE_ALT}}">
     <meta name="twitter:card" content="summary_large_image">
-    <meta name="twitter:title" content="Join the Wodby community on Slack">
-    <meta name="twitter:description" content="Talk Kubernetes, hosting, application stacks, and everything you are building with the Wodby community.">
-    <meta name="twitter:image" content="https://slack.wodby.com/og.png">
-    <title>Join the Wodby community on Slack</title>
-    <link rel="icon" href="/assets/wodby.svg" type="image/svg+xml">
+    <meta name="twitter:title" content="{{PAGE_TITLE}}">
+    <meta name="twitter:description" content="{{COMMUNITY_DESCRIPTION}}">
+    <meta name="twitter:image" content="{{SOCIAL_IMAGE_URL}}">
+    <title>{{PAGE_TITLE}}</title>
+    <link rel="canonical" href="{{PUBLIC_URL}}">
+    <link rel="icon" href="/assets/slack.svg" type="image/svg+xml">
     <link rel="stylesheet" href="/styles.css">
     <script src="/config.js"></script>
     <script type="module" src="/app.js"></script>
   </head>
   <body>
     <div class="page-shell">
-      <header class="site-header" aria-label="Wodby Community">
-        <a class="brand" href="https://wodby.com/" aria-label="Wodby home">
-          <img src="/assets/wodby.svg" width="34" height="20" alt="">
-          <span>Wodby</span>
-        </a>
+      <header class="site-header" aria-label="{{COMMUNITY_NAME}}">
+        {{BRAND_ELEMENT}}
         <span class="community-label">Community</span>
       </header>
 
@@ -36,8 +34,8 @@
         <section class="hero" aria-labelledby="page-title">
           <div class="hero-copy">
             <div class="logo-pair" aria-hidden="true">
-              <span class="logo-tile logo-tile-wodby">
-                <img src="/assets/wodby.svg" width="58" height="34" alt="">
+              <span class="logo-tile logo-tile-community">
+                {{COMMUNITY_MARK}}
               </span>
               <span class="logo-connector">+</span>
               <span class="logo-tile logo-tile-slack">
@@ -45,12 +43,9 @@
               </span>
             </div>
 
-            <p class="eyebrow">Wodby on Slack</p>
-            <h1 id="page-title">Build, deploy, and solve it together.</h1>
-            <p class="intro">
-              Join developers, operators, and maintainers talking Kubernetes,
-              hosting, application stacks, and everything they are shipping.
-            </p>
+            <p class="eyebrow">{{COMMUNITY_NAME}} on Slack</p>
+            <h1 id="page-title">{{COMMUNITY_HEADLINE}}</h1>
+            <p class="intro">{{COMMUNITY_DESCRIPTION}}</p>
 
             <div class="actions">
               <form class="invite-form" data-invite-form novalidate>
@@ -77,37 +72,37 @@
               </form>
               <p class="sign-in">
                 Already a member?
-                <a href="https://wodby.slack.com/">Sign in to Slack</a>
+                <a href="{{SLACK_SIGN_IN_URL}}">Sign in to Slack</a>
               </p>
             </div>
           </div>
 
-          <aside class="community-card" aria-label="Community topics">
+          <aside class="community-card" aria-label="Why join the community">
             <div class="card-kicker">
               <span class="live-dot" aria-hidden="true"></span>
-              Practical conversations
+              Community conversations
             </div>
             <h2>Bring what you’re working on.</h2>
             <ul>
               <li>
                 <span class="topic-number">01</span>
                 <span>
-                  <strong>Platform help</strong>
-                  Work through deployments, configuration, and operations.
+                  <strong>Ask questions</strong>
+                  Get unstuck with help from people who understand the context.
                 </span>
               </li>
               <li>
                 <span class="topic-number">02</span>
                 <span>
-                  <strong>Kubernetes knowledge</strong>
-                  Compare managed cloud and self-hosted infrastructure.
+                  <strong>Share what you know</strong>
+                  Exchange practical ideas, lessons, and useful resources.
                 </span>
               </li>
               <li>
                 <span class="topic-number">03</span>
                 <span>
-                  <strong>Open-source community</strong>
-                  Share ideas, feedback, and what you have learned.
+                  <strong>Meet the community</strong>
+                  Connect with peers and join conversations as they happen.
                 </span>
               </li>
             </ul>
@@ -116,12 +111,8 @@
       </main>
 
       <footer class="site-footer">
-        <span>© Wodby</span>
-        <nav aria-label="Footer">
-          <a href="https://wodby.com/docs/2.0/">Documentation</a>
-          <a href="https://wodby.com/docs/2.0/support/">Support</a>
-          <a href="https://wodby.com/privacy">Privacy</a>
-        </nav>
+        <span>© {{COMMUNITY_NAME}}</span>
+        {{FOOTER_NAV}}
       </footer>
     </div>
 

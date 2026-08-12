@@ -1,12 +1,13 @@
 # Slack Inviter
 
-A small public invitation page for Slack communities. It accepts an email
-address, verifies the visitor with Cloudflare Turnstile, applies local request
-limits, and asks Slack to send the invitation. Slack credentials stay entirely
-on the server.
+A small, customizable invitation page for public Slack communities. It accepts
+an email address, verifies the visitor with Cloudflare Turnstile, applies local
+request limits, and asks Slack to send the invitation. Slack credentials stay
+entirely on the server.
 
-The hosted Wodby instance powers [`slack.wodby.com`](https://slack.wodby.com/),
-but the application has no Wodby-specific runtime dependencies.
+The page ships with neutral community copy. Names, descriptions, links, logos,
+and social metadata are supplied through runtime variables, so deployments do
+not need to fork or edit the source.
 
 ## Important Slack compatibility note
 
@@ -25,29 +26,45 @@ supported alternatives are a 30-day shared invitation link or Enterprise Grid.
 
 ## Runtime configuration
 
+### Community page
+
 | Variable | Required | Description |
 | --- | --- | --- |
-| `SLACK_TEAM` | Yes | Workspace subdomain, such as `wodby` for `wodby.slack.com`. |
+| `PUBLIC_URL` | Production | Public origin, such as `https://community.example.com`. |
+| `COMMUNITY_NAME` | No | Community name; defaults to `Slack Community`. |
+| `COMMUNITY_HEADLINE` | No | Main page headline. |
+| `COMMUNITY_DESCRIPTION` | No | Intro copy and metadata description. |
+| `COMMUNITY_WEBSITE_URL` | No | Website linked from the page header. |
+| `COMMUNITY_LOGO_URL` | No | HTTPS or root-relative logo URL. A generated initial is used when omitted. |
+| `COMMUNITY_SUPPORT_URL` | No | Adds a Support link to the footer. |
+| `COMMUNITY_PRIVACY_URL` | No | Adds a Privacy link to the footer. |
+| `SOCIAL_IMAGE_URL` | No | HTTPS or root-relative social image; defaults to `/og.png`. |
+
+### Slack and abuse protection
+
+| Variable | Required | Description |
+| --- | --- | --- |
+| `SLACK_TEAM` | Yes | Workspace subdomain, such as `example` for `example.slack.com`. |
 | `SLACK_TOKEN` | Yes, secret | Existing legacy admin token from the working Slackin deployment. |
 | `TURNSTILE_SITE_KEY` | Production | Public Cloudflare Turnstile widget key. |
 | `TURNSTILE_SECRET_KEY` | Production, secret | Server-side Turnstile validation key. |
-| `TURNSTILE_EXPECTED_HOSTNAME` | No | If set, Siteverify must return this exact hostname. |
+| `TURNSTILE_EXPECTED_HOSTNAME` | Recommended | Siteverify must return this exact public hostname. |
 | `NODE_PORT` | No | HTTP port; defaults to `3000`. `PORT` is also accepted. |
 | `NODE_HOST` | No | Listen address; defaults to `0.0.0.0`. |
-| `TRUST_PROXY` | No | Trust the first `X-Forwarded-For` address. Defaults to `true` on Wodby and `false` elsewhere. |
+| `TRUST_PROXY` | No | Trust the first `X-Forwarded-For` address; defaults to `false`. |
 | `RATE_LIMIT_IP_MAX` | No | Requests per IP window; defaults to `10`. |
 | `RATE_LIMIT_IP_WINDOW_SECONDS` | No | IP window; defaults to one hour. |
 | `RATE_LIMIT_EMAIL_MAX` | No | Verified requests per email window; defaults to `3`. |
 | `RATE_LIMIT_EMAIL_WINDOW_SECONDS` | No | Email window; defaults to one day. |
 
-The application refuses to start without both Turnstile keys unless
-`NODE_ENV` is explicitly `development` or `test`. Only the site key is sent to
-browsers. The Slack token and Turnstile secret must be stored as secret runtime
-variables.
+The application refuses to start without `PUBLIC_URL` and both Turnstile keys
+unless `NODE_ENV` is explicitly `development` or `test`. Only the Turnstile
+site key is sent to browsers. The Slack token and Turnstile secret must be
+stored as secret runtime variables.
 
-Create a free Managed Turnstile widget in Cloudflare, allow the production
-hostname, and copy its site and secret keys into the two variables above. See
-the [Turnstile setup guide](https://developers.cloudflare.com/turnstile/get-started/).
+Create a free Managed Turnstile widget, allow the production hostname, and copy
+its site and secret keys into the variables above. See the
+[Turnstile setup guide](https://developers.cloudflare.com/turnstile/get-started/).
 
 ## Local development
 
@@ -67,22 +84,25 @@ all offline checks with:
 npm run check
 ```
 
-## Wodby deployment
+## Deployment
 
-1. Create an application from the managed Node.js stack.
-2. Connect `wodby/slack-inviter` to the `node` app service and select Wodby CI.
-3. Copy `SLACK_TEAM` and the secret `SLACK_TOKEN` from the current Slackin app.
-4. Add the Turnstile site key and secret key. Set
-   `TURNSTILE_EXPECTED_HOSTNAME=slack.wodby.com`.
-5. Run the pipeline in `.wodby/pipeline.yml`, attach `slack.wodby.com`, and
-   verify `/.healthz` before switching traffic.
+The Dockerfile defaults to the official Node.js image:
 
-The pipeline installs from the lockfile, runs the tests, builds the managed
-`node` service image, releases it, and deploys it through the Wodby CLI.
+```sh
+docker build -t slack-inviter .
+docker run --rm --env-file .env -p 3000:3000 slack-inviter
+```
 
-The built-in rate limiter is intentionally local to one process. Keep one
-replica for this small service. A multi-replica deployment should replace it
-with a shared limiter at the gateway or in a datastore.
+The included `.wodby/pipeline.yml` provides a native Wodby CI workflow for the
+[Slack Inviter stack](https://github.com/wodby/stack-slack-inviter). Start from
+that stack and boilerplate, attach Slack and Cloudflare Turnstile variable
+integrations, set the workspace and community settings, and verify `/.healthz`
+before switching traffic. The stack intentionally keeps one replica and the
+service enables trusted proxy handling for the Wodby route gateway.
+
+The built-in rate limiter is intentionally local to one process. A
+multi-replica deployment should replace it with a shared limiter at the gateway
+or in a datastore.
 
 ## Security and privacy
 
@@ -93,6 +113,7 @@ with a shared limiter at the gateway or in a datastore.
 - Turnstile tokens are validated server-side and are single-use.
 - JSON-only form submission and same-origin browser policy reduce cross-site
   request abuse.
+- Runtime text and links are validated and safely escaped before rendering.
 - Security headers are applied to every response.
 
 See [SECURITY.md](SECURITY.md) for vulnerability reporting.

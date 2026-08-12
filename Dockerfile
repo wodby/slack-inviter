@@ -1,8 +1,10 @@
 # check=skip=InvalidDefaultArgInFrom
-ARG WODBY_BASE_IMAGE
+ARG WODBY_BASE_IMAGE=node:24-alpine
 FROM ${WODBY_BASE_IMAGE}
 
+WORKDIR /usr/src/app
+
 ARG COPY_FROM=.
-COPY --chown=wodby:wodby ${COPY_FROM} /usr/src/app
+COPY --chown=node:node ${COPY_FROM} /usr/src/app
 
 CMD ["npm", "run", "start"]

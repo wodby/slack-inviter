@@ -7,28 +7,15 @@ import { TurnstileServiceError, verifyTurnstile } from './turnstile.js';
 
 const maximumBodyBytes = 8 * 1024;
 const emailPattern = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
-const contentSecurityPolicy = [
-  "base-uri 'none'",
-  "connect-src 'self'",
-  "default-src 'none'",
-  "form-action 'self'",
-  "frame-ancestors 'none'",
-  'frame-src https://challenges.cloudflare.com',
-  "img-src 'self' data:",
-  'script-src \'self\' https://challenges.cloudflare.com',
-  "style-src 'self'",
-].join('; ');
+const pageTemplate = readFileSync(new URL('../public/index.html', import.meta.url), 'utf8');
 
 const staticFiles = new Map(
   [
-    ['/', 'index.html', 'text/html; charset=utf-8', 'no-store'],
-    ['/index.html', 'index.html', 'text/html; charset=utf-8', 'no-store'],
     ['/app.js', 'app.js', 'text/javascript; charset=utf-8', 'public, max-age=300'],
     ['/styles.css', 'styles.css', 'text/css; charset=utf-8', 'public, max-age=300'],
     ['/og.png', 'og.png', 'image/png', 'public, max-age=86400'],
     ['/robots.txt', 'robots.txt', 'text/plain; charset=utf-8', 'public, max-age=86400'],
     ['/assets/slack.svg', 'assets/slack.svg', 'image/svg+xml', 'public, max-age=86400'],
-    ['/assets/wodby.svg', 'assets/wodby.svg', 'image/svg+xml', 'public, max-age=86400'],
   ].map(([route, file, contentType, cacheControl]) => [
     route,
     {
@@ -46,8 +33,95 @@ class HttpError extends Error {
   }
 }
 
-function applySecurityHeaders(response) {
-  response.setHeader('content-security-policy', contentSecurityPolicy);
+function escapeHtml(value) {
+  return String(value)
+    .replaceAll('&', '&amp;')
+    .replaceAll('<', '&lt;')
+    .replaceAll('>', '&gt;')
+    .replaceAll('"', '&quot;')
+    .replaceAll("'", '&#39;');
+}
+
+function contentSecurityPolicy(config) {
+  const imageSources = ["'self'", 'data:'];
+
+  if (config.community.logoUrl.startsWith('https://')) {
+    imageSources.push(new URL(config.community.logoUrl).origin);
+  }
+
+  return [
+    "base-uri 'none'",
+    "connect-src 'self'",
+    "default-src 'none'",
+    "form-action 'self'",
+    "frame-ancestors 'none'",
+    'frame-src https://challenges.cloudflare.com',
+    `img-src ${imageSources.join(' ')}`,
+    'script-src \'self\' https://challenges.cloudflare.com',
+    "style-src 'self'",
+  ].join('; ');
+}
+
+function communityMark(config, className = '') {
+  const cssClass = className ? ` ${className}` : '';
+
+  if (config.community.logoUrl) {
+    return `<img class="community-logo${cssClass}" src="${escapeHtml(config.community.logoUrl)}" alt="">`;
+  }
+
+  const initial = Array.from(config.community.name)[0]?.toLocaleUpperCase() || 'C';
+  return `<span class="community-monogram${cssClass}" aria-hidden="true">${escapeHtml(initial)}</span>`;
+}
+
+function brandElement(config) {
+  const contents = `${communityMark(config, 'brand-mark')}<span>${escapeHtml(config.community.name)}</span>`;
+
+  if (config.community.websiteUrl) {
+    return `<a class="brand" href="${escapeHtml(config.community.websiteUrl)}" aria-label="${escapeHtml(config.community.name)} home">${contents}</a>`;
+  }
+
+  return `<span class="brand">${contents}</span>`;
+}
+
+function footerNav(config) {
+  const links = [];
+
+  if (config.community.supportUrl) {
+    links.push(`<a href="${escapeHtml(config.community.supportUrl)}">Support</a>`);
+  }
+
+  if (config.community.privacyUrl) {
+    links.push(`<a href="${escapeHtml(config.community.privacyUrl)}">Privacy</a>`);
+  }
+
+  if (links.length === 0) {
+    return '';
+  }
+
+  return `<nav aria-label="Footer">${links.join('\n          ')}</nav>`;
+}
+
+function renderPage(config) {
+  const pageTitle = `Join ${config.community.name} on Slack`;
+  const replacements = {
+    BRAND_ELEMENT: brandElement(config),
+    COMMUNITY_DESCRIPTION: escapeHtml(config.community.description),
+    COMMUNITY_HEADLINE: escapeHtml(config.community.headline),
+    COMMUNITY_MARK: communityMark(config),
+    COMMUNITY_NAME: escapeHtml(config.community.name),
+    FOOTER_NAV: footerNav(config),
+    PAGE_TITLE: escapeHtml(pageTitle),
+    PUBLIC_URL: escapeHtml(config.publicUrl),
+    SLACK_SIGN_IN_URL: escapeHtml(`https://${config.slack.team}.slack.com/`),
+    SOCIAL_IMAGE_ALT: escapeHtml(`${pageTitle} — ${config.community.headline}`),
+    SOCIAL_IMAGE_URL: escapeHtml(config.socialImageUrl),
+  };
+
+  return pageTemplate.replace(/\{\{([A-Z_]+)\}\}/g, (_, name) => replacements[name] ?? '');
+}
+
+function applySecurityHeaders(response, policy) {
+  response.setHeader('content-security-policy', policy);
   response.setHeader('cross-origin-opener-policy', 'same-origin');
   response.setHeader('cross-origin-resource-policy', 'same-origin');
   response.setHeader('permissions-policy', 'camera=(), geolocation=(), microphone=()');
@@ -172,14 +246,24 @@ function invitationResponse(response, status, slackTeam) {
 export function createApp({ config, fetchImpl = globalThis.fetch, logger = console }) {
   const ipLimiter = new RateLimiter(config.rateLimit.ip);
   const emailLimiter = new RateLimiter(config.rateLimit.email);
+  const policy = contentSecurityPolicy(config);
+  const page = renderPage(config);
 
   return async function app(request, response) {
-    applySecurityHeaders(response);
+    applySecurityHeaders(response, policy);
 
     try {
       const url = new URL(request.url, 'http://localhost');
 
       if (request.method === 'GET' || request.method === 'HEAD') {
+        if (url.pathname === '/' || url.pathname === '/index.html') {
+          send(response, 200, request.method === 'HEAD' ? '' : page, {
+            'cache-control': 'no-store',
+            'content-type': 'text/html; charset=utf-8',
+          });
+          return;
+        }
+
         if (url.pathname === '/healthz' || url.pathname === '/.healthz') {
           send(response, 200, request.method === 'HEAD' ? '' : 'ok\n', {
             'cache-control': 'no-store',

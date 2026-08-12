@@ -13,12 +13,15 @@ test('Slack invitation uses the legacy Slackin-compatible request', async () => 
   const result = await inviteToSlack({
     email: 'person@example.com',
     fetchImpl,
-    team: 'wodby',
+    team: 'example-workspace',
     token: 'legacy-secret-token',
   });
 
   assert.deepEqual(result, { status: 'invited' });
-  assert.equal(request.url, 'https://wodby.slack.com/api/users.admin.invite');
+  assert.equal(
+    request.url,
+    'https://example-workspace.slack.com/api/users.admin.invite',
+  );
   assert.equal(request.options.method, 'POST');
   assert.equal(request.options.body.get('email'), 'person@example.com');
   assert.equal(request.options.body.get('token'), 'legacy-secret-token');
@@ -28,13 +31,13 @@ test('Slack invitation treats existing invitations and members as success states
   const alreadyInvited = await inviteToSlack({
     email: 'person@example.com',
     fetchImpl: async () => Response.json({ error: 'already_invited', ok: false }),
-    team: 'wodby',
+    team: 'example-workspace',
     token: 'token',
   });
   const alreadyMember = await inviteToSlack({
     email: 'person@example.com',
     fetchImpl: async () => Response.json({ error: 'already_in_team', ok: false }),
-    team: 'wodby',
+    team: 'example-workspace',
     token: 'token',
   });
 
@@ -47,7 +50,7 @@ test('Slack invitation returns a typed error without exposing the token', async 
     inviteToSlack({
       email: 'person@example.com',
       fetchImpl: async () => Response.json({ error: 'invalid_auth', ok: false }),
-      team: 'wodby',
+      team: 'example-workspace',
       token: 'legacy-secret-token',
     }),
     (error) => error instanceof SlackInviteError && error.code === 'invalid_auth',

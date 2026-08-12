@@ -9,12 +9,18 @@ const silentLogger = { error() {}, info() {} };
 
 function testConfig(overrides = {}) {
   return loadConfig({
+    COMMUNITY_DESCRIPTION: 'A welcoming place for builders.',
+    COMMUNITY_HEADLINE: 'Meet and build together.',
+    COMMUNITY_LOGO_URL: 'https://cdn.example.com/community.svg',
+    COMMUNITY_NAME: 'Example Community',
+    COMMUNITY_WEBSITE_URL: 'https://example.com',
     NODE_ENV: 'production',
+    PUBLIC_URL: 'https://community.example.com',
     RATE_LIMIT_EMAIL_MAX: '2',
     RATE_LIMIT_IP_MAX: '2',
-    SLACK_TEAM: 'wodby',
+    SLACK_TEAM: 'example-workspace',
     SLACK_TOKEN: 'legacy-server-secret',
-    TURNSTILE_EXPECTED_HOSTNAME: 'slack.wodby.com',
+    TURNSTILE_EXPECTED_HOSTNAME: 'community.example.com',
     TURNSTILE_SECRET_KEY: 'turnstile-server-secret',
     TURNSTILE_SITE_KEY: 'turnstile-public-site-key',
     ...overrides,
@@ -45,10 +51,34 @@ test('page and browser configuration never expose server secrets', async (t) => 
 
   assert.equal(pageResponse.status, 200);
   assert.match(pageResponse.headers.get('content-security-policy'), /frame-ancestors 'none'/);
+  assert.match(pageResponse.headers.get('content-security-policy'), /https:\/\/cdn\.example\.com/);
   assert.match(page, /Get my invite/);
+  assert.match(page, /Example Community/);
+  assert.match(page, /https:\/\/cdn\.example\.com\/community\.svg/);
+  assert.match(page, /Meet and build together\./);
+  assert.match(page, /https:\/\/example-workspace\.slack\.com\//);
+  assert.match(page, /https:\/\/community\.example\.com\/og\.png/);
+  assert.doesNotMatch(page, />Wodby</i);
   assert.match(clientConfig, /turnstile-public-site-key/);
   assert.doesNotMatch(clientConfig, /legacy-server-secret/);
   assert.doesNotMatch(clientConfig, /turnstile-server-secret/);
+});
+
+test('runtime community text is escaped without reprocessing template markers', async (t) => {
+  const baseUrl = await startApp(t, {
+    config: testConfig({
+      COMMUNITY_LOGO_URL: '',
+      COMMUNITY_NAME: '{{FOOTER_NAV}}<script>alert(1)</script>',
+    }),
+    fetchImpl: async () => {
+      throw new Error('No upstream request expected');
+    },
+    logger: silentLogger,
+  });
+  const page = await (await fetch(`${baseUrl}/`)).text();
+
+  assert.match(page, /\{\{FOOTER_NAV\}\}&lt;script&gt;alert\(1\)&lt;\/script&gt;/);
+  assert.doesNotMatch(page, /<script>alert\(1\)<\/script>/);
 });
 
 test('valid invitation verifies Turnstile before contacting Slack', async (t) => {
@@ -59,7 +89,7 @@ test('valid invitation verifies Turnstile before contacting Slack', async (t) =>
     if (url.includes('/turnstile/')) {
       return Response.json({
         action: 'invite',
-        hostname: 'slack.wodby.com',
+        hostname: 'community.example.com',
         success: true,
       });
     }
@@ -134,7 +164,11 @@ test('IP limiter rejects excess attempts with Retry-After', async (t) => {
     config: testConfig({ RATE_LIMIT_IP_MAX: '1' }),
     fetchImpl: async (url) =>
       url.includes('/turnstile/')
-        ? Response.json({ action: 'invite', hostname: 'slack.wodby.com', success: true })
+        ? Response.json({
+            action: 'invite',
+            hostname: 'community.example.com',
+            success: true,
+          })
         : Response.json({ ok: true }),
     logger: silentLogger,
   });

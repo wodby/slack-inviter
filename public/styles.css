@@ -80,9 +80,31 @@ a {
   text-decoration: none;
 }
 
-.brand img {
+.brand-mark {
   width: 34px;
-  height: auto;
+  height: 34px;
+}
+
+.community-logo {
+  object-fit: contain;
+}
+
+.community-monogram {
+  display: grid;
+  width: 48px;
+  height: 48px;
+  place-items: center;
+  border-radius: 15px;
+  color: #fff;
+  background: var(--blue);
+  font-size: 1.4rem;
+  font-weight: 850;
+  line-height: 1;
+}
+
+.brand .community-monogram {
+  border-radius: 10px;
+  font-size: 1rem;
 }
 
 .community-label {
@@ -133,9 +155,9 @@ main {
   box-shadow: 0 18px 48px rgba(0, 15, 26, 0.08);
 }
 
-.logo-tile-wodby img {
+.logo-tile-community .community-logo {
   width: 53px;
-  height: auto;
+  height: 53px;
 }
 
 .logo-tile-slack img {
@@ -493,8 +515,14 @@ h1 {
     border-radius: 20px;
   }
 
-  .logo-tile-wodby img {
+  .logo-tile-community .community-logo {
     width: 46px;
+    height: 46px;
+  }
+
+  .logo-tile-community .community-monogram {
+    width: 43px;
+    height: 43px;
   }
 
   .logo-tile-slack img {

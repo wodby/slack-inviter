@@ -11,9 +11,9 @@ jobs:
       - clone
 
       - run: wodby ci init $WODBY_BUILD_ID
-      - run: wodby ci run -s node -- npm ci
-      - run: wodby ci run -s node -- npm run check
+      - run: wodby ci run -s slack-inviter -- npm ci
+      - run: wodby ci run -s slack-inviter -- npm run check
 
-      - run: wodby ci build node -f Dockerfile
+      - run: wodby ci build slack-inviter -f Dockerfile
       - run: wodby ci release
       - run: wodby ci deploy
