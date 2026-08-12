@@ -1,13 +1,21 @@
 {
-  "name": "@wodby/slack",
+  "name": "@wodby/slack-inviter",
   "version": "1.0.0",
   "private": true,
+  "description": "A small, abuse-resistant public invitation page for Slack communities",
   "type": "module",
   "scripts": {
-    "check": "node --check public/app.js && node --check public/invite-state.js && node --test",
+    "check": "node --check server.js && node --check src/*.js && node --check public/app.js && node --test",
+    "dev": "node --env-file-if-exists=.env --watch server.js",
+    "start": "node server.js",
     "test": "node --test"
   },
   "engines": {
     "node": ">=22"
-  }
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/wodby/slack-inviter.git"
+  },
+  "license": "MIT"
 }

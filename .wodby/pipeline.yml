@@ -11,8 +11,9 @@ jobs:
       - clone
 
       - run: wodby ci init $WODBY_BUILD_ID
-      - run: wodby ci run -i wodby/node:24 -- npm run check
+      - run: wodby ci run -s node -- npm ci
+      - run: wodby ci run -s node -- npm run check
 
-      - run: wodby ci build nginx -f Dockerfile
-      - run: wodby ci release nginx
-      - run: wodby ci deploy nginx
+      - run: wodby ci build node -f Dockerfile
+      - run: wodby ci release
+      - run: wodby ci deploy

@@ -10,13 +10,16 @@
     <meta property="og:title" content="Join the Wodby community on Slack">
     <meta property="og:description" content="Talk Kubernetes, hosting, application stacks, and everything you are building with the Wodby community.">
     <meta property="og:url" content="https://slack.wodby.com/">
-    <meta name="twitter:card" content="summary">
+    <meta property="og:image" content="https://slack.wodby.com/og.png">
+    <meta property="og:image:alt" content="Build, deploy, and solve it together — Wodby on Slack">
+    <meta name="twitter:card" content="summary_large_image">
     <meta name="twitter:title" content="Join the Wodby community on Slack">
     <meta name="twitter:description" content="Talk Kubernetes, hosting, application stacks, and everything you are building with the Wodby community.">
+    <meta name="twitter:image" content="https://slack.wodby.com/og.png">
     <title>Join the Wodby community on Slack</title>
     <link rel="icon" href="/assets/wodby.svg" type="image/svg+xml">
     <link rel="stylesheet" href="/styles.css">
-    <script src="/config.js" defer></script>
+    <script src="/config.js"></script>
     <script type="module" src="/app.js"></script>
   </head>
   <body>
@@ -50,12 +53,28 @@
             </p>
 
             <div class="actions">
-              <a class="join-button" href="/join" data-join-link>
-                <img src="/assets/slack.svg" width="22" height="22" alt="">
-                <span data-join-label>Join Wodby on Slack</span>
-                <span class="button-arrow" aria-hidden="true">→</span>
-              </a>
-              <p class="invite-message" data-invite-message role="status" hidden></p>
+              <form class="invite-form" data-invite-form novalidate>
+                <label for="invite-email">Email address</label>
+                <div class="invite-controls">
+                  <input
+                    id="invite-email"
+                    name="email"
+                    type="email"
+                    inputmode="email"
+                    autocomplete="email"
+                    placeholder="you@example.com"
+                    maxlength="254"
+                    required
+                  >
+                  <button class="join-button" type="submit" data-submit disabled>
+                    <img src="/assets/slack.svg" width="22" height="22" alt="">
+                    <span data-submit-label>Get my invite</span>
+                    <span class="button-arrow" aria-hidden="true">→</span>
+                  </button>
+                </div>
+                <div class="turnstile-slot" data-turnstile aria-label="Human verification"></div>
+                <p class="invite-message" data-invite-message role="status" aria-live="polite"></p>
+              </form>
               <p class="sign-in">
                 Already a member?
                 <a href="https://wodby.slack.com/">Sign in to Slack</a>
@@ -108,7 +127,7 @@
 
     <noscript>
       <p class="noscript-message">
-        JavaScript is disabled, so invitation expiry cannot be checked automatically.
+        Enable JavaScript to verify your request and receive an invitation.
       </p>
     </noscript>
   </body>
