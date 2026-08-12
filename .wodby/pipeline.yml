@@ -1,0 +1,18 @@
+version: 0.1
+
+workflows:
+  main:
+    jobs:
+      - build
+
+jobs:
+  build:
+    steps:
+      - clone
+
+      - run: wodby ci init $WODBY_BUILD_ID
+      - run: wodby ci run -i wodby/node:24 -- npm run check
+
+      - run: wodby ci build nginx -f Dockerfile
+      - run: wodby ci release nginx
+      - run: wodby ci deploy nginx

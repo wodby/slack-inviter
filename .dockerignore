@@ -1,0 +1,10 @@
+.git
+.gitignore
+.env
+.github
+.wodby
+node_modules
+npm-debug.log
+package.json
+README.md
+tests

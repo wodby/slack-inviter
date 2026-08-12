@@ -1,0 +1,13 @@
+{
+  "name": "@wodby/slack",
+  "version": "1.0.0",
+  "private": true,
+  "type": "module",
+  "scripts": {
+    "check": "node --check public/app.js && node --check public/invite-state.js && node --test",
+    "test": "node --test"
+  },
+  "engines": {
+    "node": ">=22"
+  }
+}

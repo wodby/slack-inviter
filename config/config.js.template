@@ -1,0 +1,3 @@
+window.WODBY_SLACK_CONFIG = Object.freeze({
+  inviteExpiresAt: '{{ getenv "SLACK_INVITE_EXPIRES_AT" }}'
+});
