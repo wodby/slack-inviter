@@ -1,9 +1,9 @@
 # Slack Inviter
 
 A small, customizable invitation page for public Slack communities. It accepts
-an email address, verifies the visitor with Cloudflare Turnstile, applies local
-request limits, and asks Slack to send the invitation. Slack credentials stay
-entirely on the server.
+an email address, optionally verifies the visitor with Cloudflare Turnstile,
+applies local request limits, and asks Slack to send the invitation. Slack
+credentials stay entirely on the server.
 
 The page ships with neutral community copy. Names, descriptions, links, logos,
 and social metadata are supplied through runtime variables, so deployments do
@@ -13,7 +13,7 @@ not need to fork or edit the source.
 
 This project calls the undocumented `users.admin.invite` endpoint used by
 [Slackin Extended](https://github.com/emedvedev/slackin-extended). It requires
-an existing legacy token owned by a Slack workspace administrator.
+an existing legacy administrator API token from a working Slackin installation.
 
 Slack stopped issuing new legacy test tokens in 2020 and may remove this
 endpoint at any time. A newly created Slack app token will not make this method
@@ -45,10 +45,10 @@ supported alternatives are a 30-day shared invitation link or Enterprise Grid.
 | Variable | Required | Description |
 | --- | --- | --- |
 | `SLACK_TEAM` | Yes | Workspace subdomain, such as `example` for `example.slack.com`. |
-| `SLACK_TOKEN` | Yes, secret | Existing legacy admin token from the working Slackin deployment. |
-| `TURNSTILE_SITE_KEY` | Production | Public Cloudflare Turnstile widget key. |
-| `TURNSTILE_SECRET_KEY` | Production, secret | Server-side Turnstile validation key. |
-| `TURNSTILE_EXPECTED_HOSTNAME` | Recommended | Siteverify must return this exact public hostname. |
+| `SLACK_TOKEN` | Yes, secret | Existing legacy administrator API token from the working Slackin deployment. Slack no longer issues these tokens. |
+| `TURNSTILE_SITE_KEY` | No | Public Cloudflare Turnstile widget key. Configure it with the secret key to enable verification. |
+| `TURNSTILE_SECRET_KEY` | No, secret | Server-side Turnstile validation key. Configure it with the site key. |
+| `TURNSTILE_EXPECTED_HOSTNAME` | Recommended with Turnstile | Siteverify must return this exact public hostname. |
 | `NODE_PORT` | No | HTTP port; defaults to `3000`. `PORT` is also accepted. |
 | `NODE_HOST` | No | Listen address; defaults to `0.0.0.0`. |
 | `TRUST_PROXY` | No | Trust the first `X-Forwarded-For` address; defaults to `false`. |
@@ -57,13 +57,15 @@ supported alternatives are a 30-day shared invitation link or Enterprise Grid.
 | `RATE_LIMIT_EMAIL_MAX` | No | Verified requests per email window; defaults to `3`. |
 | `RATE_LIMIT_EMAIL_WINDOW_SECONDS` | No | Email window; defaults to one day. |
 
-The application refuses to start without `PUBLIC_URL` and both Turnstile keys
-unless `NODE_ENV` is explicitly `development` or `test`. Only the Turnstile
-site key is sent to browsers. The Slack token and Turnstile secret must be
-stored as secret runtime variables.
+The application refuses to start without `PUBLIC_URL` unless `NODE_ENV` is
+explicitly `development` or `test`. Turnstile is disabled when both keys are
+omitted, while configuring only one key is rejected. Only the Turnstile site
+key is sent to browsers. The Slack token and Turnstile secret must be stored as
+secret runtime variables.
 
-Create a free Managed Turnstile widget, allow the production hostname, and copy
-its site and secret keys into the variables above. See the
+For recommended abuse protection, create a free Managed Turnstile widget,
+allow the production hostname, and copy its site and secret keys into the
+variables above. See the
 [Turnstile setup guide](https://developers.cloudflare.com/turnstile/get-started/).
 
 ## Local development
@@ -95,8 +97,9 @@ docker run --rm --env-file .env -p 3000:3000 slack-inviter
 
 The included `.wodby/pipeline.yml` provides a native Wodby CI workflow for the
 [Slack Inviter stack](https://github.com/wodby/stack-slack-inviter). Start from
-that stack and boilerplate, attach Slack and Cloudflare Turnstile variable
-integrations, set the workspace and community settings, and verify `/.healthz`
+that stack and boilerplate, attach the required Slack legacy API token
+integration and, optionally, a Cloudflare integration with its Turnstile kind
+selected. Set the workspace and community settings, and verify `/.healthz`
 before switching traffic. The stack intentionally keeps one replica and the
 service enables trusted proxy handling for the Wodby route gateway.
 

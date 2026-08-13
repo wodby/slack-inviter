@@ -12,7 +12,7 @@ test('development configuration can run without Turnstile', () => {
 
   assert.equal(config.community.name, 'Slack Community');
   assert.equal(config.publicUrl, 'http://localhost:3000');
-  assert.equal(config.turnstile.required, false);
+  assert.equal(config.turnstile.enabled, false);
   assert.equal(config.turnstile.siteKey, '');
   assert.equal(config.port, 3000);
   assert.equal(config.trustProxy, false);
@@ -30,7 +30,20 @@ test('production configuration requires a public URL', () => {
   );
 });
 
-test('production configuration requires Turnstile credentials', () => {
+test('production configuration can run without optional Turnstile credentials', () => {
+  const config = loadConfig({
+    NODE_ENV: 'production',
+    PUBLIC_URL: 'https://community.example.com',
+    SLACK_TEAM: 'example-workspace',
+    SLACK_TOKEN: 'legacy-test-token',
+  });
+
+  assert.equal(config.turnstile.enabled, false);
+  assert.equal(config.turnstile.secretKey, '');
+  assert.equal(config.turnstile.siteKey, '');
+});
+
+test('Turnstile credentials must be configured together', () => {
   assert.throws(
     () =>
       loadConfig({
@@ -38,8 +51,9 @@ test('production configuration requires Turnstile credentials', () => {
         PUBLIC_URL: 'https://community.example.com',
         SLACK_TEAM: 'example-workspace',
         SLACK_TOKEN: 'legacy-test-token',
+        TURNSTILE_SITE_KEY: 'site',
       }),
-    /Turnstile credentials are required/,
+    /must be configured together/,
   );
 });
 
@@ -65,6 +79,7 @@ test('production configuration renders custom community values', () => {
   assert.equal(config.publicUrl, 'https://community.example.com');
   assert.equal(config.socialImageUrl, 'https://community.example.com/preview.png');
   assert.equal(config.trustProxy, true);
+  assert.equal(config.turnstile.enabled, true);
 });
 
 test('unsafe community URLs are rejected', () => {

@@ -119,6 +119,32 @@ test('valid invitation verifies Turnstile before contacting Slack', async (t) =>
   assert.equal(calls[1].options.body.get('email'), 'person@example.com');
 });
 
+test('valid invitation skips Turnstile when it is not configured', async (t) => {
+  const calls = [];
+  const fetchImpl = async (url, options) => {
+    calls.push({ options, url });
+    return Response.json({ ok: true });
+  };
+  const baseUrl = await startApp(t, {
+    config: testConfig({
+      TURNSTILE_EXPECTED_HOSTNAME: '',
+      TURNSTILE_SECRET_KEY: '',
+      TURNSTILE_SITE_KEY: '',
+    }),
+    fetchImpl,
+    logger: silentLogger,
+  });
+  const response = await fetch(`${baseUrl}/api/invitations`, {
+    body: JSON.stringify({ email: 'person@example.com' }),
+    headers: { 'content-type': 'application/json' },
+    method: 'POST',
+  });
+
+  assert.equal(response.status, 200);
+  assert.equal(calls.length, 1);
+  assert.match(calls[0].url, /users\.admin\.invite/);
+});
+
 test('invalid email never reaches Turnstile or Slack', async (t) => {
   let upstreamCalls = 0;
   const baseUrl = await startApp(t, {

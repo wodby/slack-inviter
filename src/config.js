@@ -122,7 +122,6 @@ export function loadConfig(env = process.env) {
   const configuredSocialImageUrl = imageUrl(env, 'SOCIAL_IMAGE_URL');
   const turnstileSiteKey = env.TURNSTILE_SITE_KEY?.trim() ?? '';
   const turnstileSecretKey = env.TURNSTILE_SECRET_KEY?.trim() ?? '';
-  const turnstileRequired = !isDevelopment;
 
   if (!slackTeamPattern.test(slackTeam)) {
     throw new Error('SLACK_TEAM must be a valid Slack workspace subdomain');
@@ -130,10 +129,6 @@ export function loadConfig(env = process.env) {
 
   if ((turnstileSiteKey && !turnstileSecretKey) || (!turnstileSiteKey && turnstileSecretKey)) {
     throw new Error('TURNSTILE_SITE_KEY and TURNSTILE_SECRET_KEY must be configured together');
-  }
-
-  if (turnstileRequired && !turnstileSiteKey) {
-    throw new Error('Turnstile credentials are required in production');
   }
 
   return Object.freeze({
@@ -166,7 +161,7 @@ export function loadConfig(env = process.env) {
     }),
     turnstile: Object.freeze({
       expectedHostname: env.TURNSTILE_EXPECTED_HOSTNAME?.trim() || '',
-      required: turnstileRequired,
+      enabled: Boolean(turnstileSiteKey),
       secretKey: turnstileSecretKey,
       siteKey: turnstileSiteKey,
     }),
