@@ -15,5 +15,5 @@ jobs:
       - run: wodby ci run -s slack-inviter -- npm run check
 
       - run: wodby ci build slack-inviter -f Dockerfile
-      - run: wodby ci release
+      - run: wodby ci push
       - run: wodby ci deploy
